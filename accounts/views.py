@@ -1,5 +1,5 @@
 from telnetlib import STATUS
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import *
 from .forms import OrderForm
@@ -40,12 +40,42 @@ def customer(request, pk_test):
     'orders_count':orders_count}
     return render(request, 'accounts/customer.html',context)
 
-def create_order(request):
+def create_order(request,pk):
+    customer=Customer.objects.get(id=pk)
     form=OrderForm()
 
     if request.method == 'POST':
         print('Printing POST', request.POST)
+        form =OrderForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/')
 
     context={'form':form}
 
     return render(request, 'accounts/order_form.html',context)
+
+def update_order(request, pk):
+
+    order=Order.objects.get(id=pk)
+    form=OrderForm(instance=order)
+
+    if request.method == 'POST':
+        print('Printing POST', request.POST)
+        form =OrderForm(request.POST,instance=order)
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+
+    context={'form':form}
+    return render(request, 'accounts/order_form.html',context)
+
+
+def delete_order(request, pk):
+    order=Order.objects.get(id=pk)
+    context={'item':order}
+    if request.method == 'POST':
+        order.delete()
+        return redirect('/')
+    return render(request,'accounts/delete.html',context)
+
